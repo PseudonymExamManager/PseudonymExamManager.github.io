@@ -5,54 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PseudonymExamManager</title>
     <link rel="manifest" href="/manifest.webmanifest">
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            font-family: Arial, sans-serif;
-        }
-        #app {
-            display: flex;
-            flex-direction: row;
-            width: 100%;
-            max-width: 1200px;
-        }
-        .left-panel, .right-panel {
-            flex: 1;
-            padding: 20px;
-        }
-        .right-panel {
-            border-left: 1px solid #ccc;
-        }
-        @media (max-width: 768px) {
-            #app {
-                flex-direction: column;
-            }
-            .right-panel {
-                border-left: none;
-                border-top: 1px solid #ccc;
-            }
-        }
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-    <div id="app"></div>
+<body class="flex items-center justify-center h-screen m-0 font-sans">
+    <div id="app" class="flex flex-col md:flex-row w-full h-full p-2">
+        <div class="left-panel flex-1 p-5">
+            <h1 class="text-2xl font-bold mb-4">PseudonymExamManager</h1>
+            <input type="file" @change="handleFileUpload" class="mb-4 p-2 border rounded w-full" />
+            <div class="mb-4">
+                <label class="block mb-1">Exam Name:</label>
+                <input v-model="config.examName" @blur="immediateProcessing" @keyup.enter="immediateProcessing" class="w-full p-2 border rounded" />
+            </div>
+            <div class="mb-4">
+                <label class="block mb-1">Exam Date:</label>
+                <input type="date" v-model="config.examDate" @blur="immediateProcessing" @keyup.enter="immediateProcessing" class="w-full p-2 border rounded" />
+            </div>
+            <div class="mb-4">
+                <label class="block mb-1">Department:</label>
+                <input v-model="config.department" @blur="immediateProcessing" @keyup.enter="immediateProcessing" class="w-full p-2 border rounded" />
+            </div>
+            <div class="mb-4">
+                <label class="block mb-1">University:</label>
+                <input v-model="config.university" @blur="immediateProcessing" @keyup.enter="immediateProcessing" class="w-full p-2 border rounded" />
+            </div>
+            <div class="mb-4">
+                <label class="block mb-1">Section Size:</label>
+                <input type="number" v-model="config.sectionSize" @blur="immediateProcessing" @keyup.enter="immediateProcessing" class="w-full p-2 border rounded" />
+            </div>
+        </div>
+        <div class="right-panel flex-2 p-5 border-t md:border-t-0 md:border-l border-gray-300 w-full md:w-3/5 h-full">
+            <h2 class="text-xl font-bold mb-4">Generated PDF</h2>
+            <iframe id="pdf-preview" class="w-full h-full"></iframe>
+        </div>
+        <div v-if="loading" class="overlay fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center z-50">
+            <ve-progress :progress="progress" size="100" color="#3f79ff"></ve-progress>
+        </div>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>

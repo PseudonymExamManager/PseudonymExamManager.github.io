@@ -20,7 +20,7 @@ createApp({
         let typingTimer;
 
         const handleFileUpload = (event) => {
-            loading.value = true; // Show loading indicator immediately
+            loading.value = true;
             progress.value = 0;
             const file = event.target.files[0];
             const reader = new FileReader();
@@ -29,7 +29,7 @@ createApp({
                 await parseCSV(csv);
                 await sortAndSectionStudents();
                 generatePDF();
-                loading.value = false; // Hide loading indicator when processing is complete
+                loading.value = false;
             };
             reader.readAsText(file);
         };
@@ -54,7 +54,7 @@ createApp({
                     result.push(obj);
                 }
                 progress.value = Math.round((i / lines.length) * 100);
-                await new Promise(resolve => setTimeout(resolve, 0)); // Allow UI to update
+                await new Promise(resolve => setTimeout(resolve, 0));
             }
             students.value = result;
             console.log("Students:", students.value);
@@ -72,7 +72,7 @@ createApp({
             for (let i = 0; i < students.value.length; i += config.value.sectionSize) {
                 sections.value.push(students.value.slice(i, i + config.value.sectionSize));
                 progress.value = Math.round(((i + config.value.sectionSize) / students.value.length) * 100);
-                await new Promise(resolve => setTimeout(resolve, 0)); // Allow UI to update
+                await new Promise(resolve => setTimeout(resolve, 0));
             }
             console.log("Sections:", sections.value);
         };
@@ -122,13 +122,13 @@ createApp({
                     });
                 }
                 progress.value = Math.round(((sectionIndex + 1) / sections.value.length) * 100);
-                await new Promise(resolve => setTimeout(resolve, 0)); // Allow UI to update
+                await new Promise(resolve => setTimeout(resolve, 0));
             }
 
             const pdfBytes = await pdfDoc.save();
             const blob = new Blob([pdfBytes], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
-            console.log("Generated PDF URL:", url); // Debugging: Display URL
+            console.log("Generated PDF URL:", url);
             document.getElementById('pdf-preview').src = url;
             console.log("PDF generated and displayed.");
         };
@@ -163,35 +163,5 @@ createApp({
             progress,
             immediateProcessing
         };
-    },
-    template: `
-        <div id="app">
-            <div class="left-panel">
-                <h1>PseudonymExamManager</h1>
-                <input type="file" @change="handleFileUpload" />
-                <div>
-                    <label>Exam Name: <input v-model="config.examName" @blur="immediateProcessing" @keyup.enter="immediateProcessing" /></label>
-                </div>
-                <div>
-                    <label>Exam Date: <input type="date" v-model="config.examDate" @blur="immediateProcessing" @keyup.enter="immediateProcessing" /></label>
-                </div>
-                <div>
-                    <label>Department: <input v-model="config.department" @blur="immediateProcessing" @keyup.enter="immediateProcessing" /></label>
-                </div>
-                <div>
-                    <label>University: <input v-model="config.university" @blur="immediateProcessing" @keyup.enter="immediateProcessing" /></label>
-                </div>
-                <div>
-                    <label>Section Size: <input type="number" v-model="config.sectionSize" @blur="immediateProcessing" @keyup.enter="immediateProcessing" /></label>
-                </div>
-            </div>
-            <div class="right-panel">
-                <h2>Generated PDF</h2>
-                <iframe id="pdf-preview" style="width: 100%; height: 500px;"></iframe>
-            </div>
-            <div v-if="loading" class="overlay">
-                <ve-progress :progress="progress" size="100" color="#3f79ff"></ve-progress>
-            </div>
-        </div>
-    `
+    }
 }).mount('#app');
