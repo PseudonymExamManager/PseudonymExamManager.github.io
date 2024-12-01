@@ -19,6 +19,7 @@ createApp({
         const progress = ref(0);
         let typingTimer;
 
+        // Handle file upload and initiate CSV parsing
         const handleFileUpload = (event) => {
             loading.value = true;
             progress.value = 0;
@@ -34,12 +35,47 @@ createApp({
             reader.readAsText(file);
         };
 
+        // Parse CSV data and extract exam information and student data
         const parseCSV = async (csv) => {
             console.log("Parsing CSV...");
             const lines = csv.split('\n');
             const examInfo = lines[0].split(',');
             config.value.examName = examInfo[1];
-            config.value.examDate = examInfo[4].split(' ')[1];
+            
+            // Bug description: The date field may contain a comma after the weekday, causing incorrect parsing.
+            // Attempt to extract the date from field 4
+            let dateField = examInfo[4];
+            let dateMatch = dateField.match(/\b\d{1,2}\.\s\w+\s\d{4}\b/);
+            
+            // If date extraction from field 4 fails, try field 5
+            if (!dateMatch) {
+                dateField = examInfo[5];
+                dateMatch = dateField.match(/\b\d{1,2}\.\s\w+\s\d{4}\b/);
+            }
+
+            if (dateMatch) {
+                const dateStr = dateMatch[0];
+                const [day, month, year] = dateStr.split(' ');
+                const months = {
+                    'Januar': '01',
+                    'Februar': '02',
+                    'März': '03',
+                    'April': '04',
+                    'Mai': '05',
+                    'Juni': '06',
+                    'Juli': '07',
+                    'August': '08',
+                    'September': '09',
+                    'Oktober': '10',
+                    'November': '11',
+                    'Dezember': '12'
+                };
+                const formattedDate = new Date(`${year}-${months[month]}-${day.replace('.', '')}`).toISOString().split('T')[0];
+                config.value.examDate = formattedDate;
+            } else {
+                config.value.examDate = "Date not found";
+            }
+            
             console.log("Exam Info:", config.value.examName, config.value.examDate);
 
             const headers = lines[1].split(',');
@@ -60,6 +96,7 @@ createApp({
             console.log("Students:", students.value);
         };
 
+        // Sort students and divide them into sections
         const sortAndSectionStudents = async () => {
             console.log("Sorting and sectioning students...");
             students.value.sort((a, b) => {
@@ -77,6 +114,7 @@ createApp({
             console.log("Sections:", sections.value);
         };
 
+        // Generate PDF with student information and barcodes
         const generatePDF = async () => {
             console.log("Generating PDF...");
             const { PDFDocument, rgb } = PDFLib;
@@ -133,6 +171,7 @@ createApp({
             console.log("PDF generated and displayed.");
         };
 
+        // Delayed processing to handle user input changes
         const delayedProcessing = () => {
             clearTimeout(typingTimer);
             typingTimer = setTimeout(async () => {
@@ -144,6 +183,7 @@ createApp({
             }, 3000);
         };
 
+        // Immediate processing for user input changes
         const immediateProcessing = async () => {
             clearTimeout(typingTimer);
             loading.value = true;
@@ -153,6 +193,7 @@ createApp({
             loading.value = false;
         };
 
+        // Watch for changes in config and trigger delayed processing
         watch([config], delayedProcessing, { deep: true });
 
         return {
