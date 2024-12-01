@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PseudonymExamManager</title>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        #app {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            max-width: 1200px;
+        }
+        .left-panel, .right-panel {
+            flex: 1;
+            padding: 20px;
+        }
+        .right-panel {
+            border-left: 1px solid #ccc;
+        }
+        @media (max-width: 768px) {
+            #app {
+                flex-direction: column;
+            }
+            .right-panel {
+                border-left: none;
+                border-top: 1px solid #ccc;
+            }
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-ellipse-progress/dist/veprogress.umd.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
