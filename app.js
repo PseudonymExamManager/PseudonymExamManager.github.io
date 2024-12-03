@@ -272,13 +272,17 @@ createApp({
 		        borderWidth: 1,
 		    });
 
-		    // Draw horizontal line above the row
+		    // Draw horizontal line 2px above the row
+		    const lineY = yPosition + 12;
 		    page.drawLine({
-		        start: { x: margin, y: yPosition },
-		        end: { x: A4_WIDTH - margin, y: yPosition },
+		        start: { x: 0, y: lineY }, // Start at the left edge
+		        end: { x: A4_WIDTH, y: lineY }, // End at the right edge
 		        thickness: 0.5,
 		        color: rgb(0, 0, 0),
 		    });
+
+		    // Store the line height for use in the cover page
+		    student.lineY = lineY;
 
 		    yPosition -= maxLines * lineHeight; // Adjust yPosition for the next row
 		    currentIndex++;
@@ -449,22 +453,21 @@ createApp({
 	    });
 
 	    // Draw short horizontal lines at the same height as the section page lines
-	    const lineYPositions = [barcodeTopY - 30, examNameY + 40, departmentY + 20, sectionNumberY + 10];
-	    lineYPositions.forEach(y => {
-		coverPage.drawLine({
-		    start: { x: 10 * 2.83465, y: y },
-		    end: { x: 30 * 2.83465, y: y },
-		    thickness: 0.5,
-		    color: rgb(0, 0, 0),
-		});
-		coverPage.drawLine({
-		    start: { x: coverWidth - 30 * 2.83465, y: y },
-		    end: { x: coverWidth - 10 * 2.83465, y: y },
-		    thickness: 0.5,
-		    color: rgb(0, 0, 0),
-		});
+	    const lineY = student.lineY;
+	    coverPage.drawLine({
+		start: { x: 0, y: lineY }, // Start at the left edge
+		end: { x: 10 * 2.83465, y: lineY }, // Short line at the left edge, half the length
+		thickness: 0.5,
+		color: rgb(0, 0, 0),
+	    });
+	    coverPage.drawLine({
+		start: { x: coverWidth - 10 * 2.83465, y: lineY }, // Short line at the right edge, half the length
+		end: { x: coverWidth, y: lineY }, // End at the right edge
+		thickness: 0.5,
+		color: rgb(0, 0, 0),
 	    });
 	};
+
 
         // Sort students and divide them into sections
         const sortAndSectionStudents = async () => {
