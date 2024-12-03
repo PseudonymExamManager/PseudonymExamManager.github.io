@@ -313,21 +313,68 @@ createApp({
 
         // Sort students and divide them into sections
         const sortAndSectionStudents = async () => {
-            console.log("Sorting and sectioning students...");
-            students.value.sort((a, b) => {
-                if (a.Name !== b.Name) return a.Name.localeCompare(b.Name);
-                if (a.Vorname !== b.Vorname) return a.Vorname.localeCompare(b.Vorname);
-                return a.Mittelname.localeCompare(b.Mittelname);
-            });
+	    console.log("Sorting and sectioning students...");
+	    
+	    // Sort students by Name, Vorname, and Mittelname
+	    students.value.sort((a, b) => {
+		if (a.Name !== b.Name) return a.Name.localeCompare(b.Name);
+		if (a.Vorname !== b.Vorname) return a.Vorname.localeCompare(b.Vorname);
+		return a.Mittelname.localeCompare(b.Mittelname);
+	    });
 
-            sections.value = [];
-            for (let i = 0; i < students.value.length; i += config.value.sectionSize) {
-                sections.value.push(students.value.slice(i, i + config.value.sectionSize));
-                progress.value = Math.round(((i + config.value.sectionSize) / students.value.length) * 100);
-                await new Promise(resolve => setTimeout(resolve, 0));
-            }
-            console.log("Sections:", sections.value);
-        };
+	    // Map to keep track of students with the same base name
+	    const nameMap = new Map();
+
+	    // Populate the map with students grouped by their base name
+	    students.value.forEach(student => {
+		const baseName = student.Name;
+		if (!nameMap.has(baseName)) {
+		    nameMap.set(baseName, []);
+		}
+		nameMap.get(baseName).push(student);
+	    });
+
+	    // Iterate over each group of students with the same base name
+	    nameMap.forEach((studentsWithSameName, baseName) => {
+		if (studentsWithSameName.length > 1) {
+		    // Map to keep track of students with the same full name (Name + Vorname)
+		    const firstNamesMap = new Map();
+
+		    // Populate the map with students grouped by their full name
+		    studentsWithSameName.forEach(student => {
+		        const fullName = `${student.Name}, ${student.Vorname}`;
+		        if (!firstNamesMap.has(fullName)) {
+		            firstNamesMap.set(fullName, []);
+		        }
+		        firstNamesMap.get(fullName).push(student);
+		    });
+
+		    // Iterate over each group of students with the same full name
+		    firstNamesMap.forEach((studentsWithSameFirstName, fullName) => {
+		        if (studentsWithSameFirstName.length > 1) {
+		            // If there are multiple students with the same full name, add the Mittelname
+		            studentsWithSameFirstName.forEach(student => {
+		                student.Name = `${student.Name}, ${student.Vorname}, ${student.Mittelname}`;
+		            });
+		        } else {
+		            // If the full name is unique, add only the Vorname
+		            studentsWithSameFirstName.forEach(student => {
+		                student.Name = `${student.Name}, ${student.Vorname}`;
+		            });
+		        }
+		    });
+		}
+	    });
+
+	    // Divide students into sections based on the section size
+	    sections.value = [];
+	    for (let i = 0; i < students.value.length; i += config.value.sectionSize) {
+		sections.value.push(students.value.slice(i, i + config.value.sectionSize));
+		progress.value = Math.round(((i + config.value.sectionSize) / students.value.length) * 100);
+		await new Promise(resolve => setTimeout(resolve, 0));
+	    }
+	    console.log("Sections:", sections.value);
+	};
 
         // Delayed processing to handle user input changes
         const delayedProcessing = () => {
