@@ -152,32 +152,14 @@ createApp({
 	};
 
 	const createSectionPage = (pdfDoc, section, sectionIndex, helveticaFont, helveticaBoldFont, A4_WIDTH, A4_HEIGHT, rgb) => {
-	    const sectionPage = pdfDoc.addPage([A4_WIDTH, A4_HEIGHT]);
-	    const sectionWidth = sectionPage.getWidth();
-	    const sectionHeight = sectionPage.getHeight();
-	    const fontSize = 12;
-
-	    // Section title
-	    sectionPage.drawText(`Section ${sectionIndex + 1}`, {
-		x: sectionWidth / 2 - 50,
-		y: sectionHeight - 20 * 2.83465,
-		size: fontSize,
-		font: helveticaBoldFont,
-		color: rgb(0, 0, 0),
-	    });
-
-	    // Draw table
-	    drawTable(sectionPage, section, helveticaFont, helveticaBoldFont, sectionHeight, rgb);
-	};
-
-	const drawTable = (sectionPage, section, helveticaFont, helveticaBoldFont, sectionHeight, rgb) => {
 	    const headers = ["Name", "Student\nNumber", "ID\nCheck", "Remarks"];
 	    const maxNameColumnWidth = 300;
 	    const maxStudentNumberColumnWidth = 100; // Set a reasonable maximum width for student number
 	    const otherColumnWidths = [40, 150]; // Widths for ID Check and Remarks
-	    let yPosition = sectionHeight - 40 * 2.83465;
 	    const fontSize = 12;
 	    const lineHeight = 1.5 * fontSize; // Adjust line height for better readability
+	    const margin = 50;
+	    const usableHeight = A4_HEIGHT - 60 * 2.83465; // Adjust for margins and header
 
 	    // Calculate the dynamic width of the Name column
 	    let nameColumnWidth = 0;
@@ -201,22 +183,25 @@ createApp({
 
 	    const columnWidths = [nameColumnWidth, studentNumberColumnWidth, ...otherColumnWidths];
 
-	    // Table headers
-	    headers.forEach((header, index) => {
-		const lines = header.split('\n');
-		lines.forEach((line, lineIndex) => {
-		    sectionPage.drawText(line, {
-		        x: 50 + columnWidths.slice(0, index).reduce((a, b) => a + b, 0),
-		        y: yPosition - (lineIndex * lineHeight),
-		        size: fontSize,
-		        font: helveticaBoldFont,
-		        color: rgb(0, 0, 0),
+	    let yPosition = A4_HEIGHT - 40 * 2.83465;
+	    let pageIndex = 1;
+
+	    // Function to draw table headers
+	    const drawTableHeaders = (page) => {
+		headers.forEach((header, index) => {
+		    const lines = header.split('\n');
+		    lines.forEach((line, lineIndex) => {
+		        page.drawText(line, {
+		            x: margin + columnWidths.slice(0, index).reduce((a, b) => a + b, 0),
+		            y: yPosition - (lineIndex * lineHeight),
+		            size: fontSize,
+		            font: helveticaBoldFont,
+		            color: rgb(0, 0, 0),
+		        });
 		    });
 		});
-	    });
-
-	    // Adjust yPosition for the next row after headers
-	    yPosition -= lineHeight * 2;
+		yPosition -= lineHeight * 2;
+	    };
 
 	    // Function to split text based on column width
 	    const splitText = (text, maxWidth, font, fontSize) => {
@@ -238,55 +223,103 @@ createApp({
 		return lines;
 	    };
 
-	    // Table rows
-	    section.forEach((student, studentIndex) => {
-		const studentData = [
-		    student.Name,
-		    student.Matrikelnummer,
-		    "", // ID Check (empty)
-		    ""  // Remarks (empty)
-		];
+	    // Function to draw table rows
+	    const drawTableRows = (page, startIndex) => {
+		let currentIndex = startIndex;
+		while (currentIndex < section.length && yPosition > lineHeight) {
+		    const student = section[currentIndex];
+		    const studentData = [
+		        student.Name,
+		        student.Matrikelnummer,
+		        "", // ID Check (empty)
+		        ""  // Remarks (empty)
+		    ];
 
-		let maxLines = 1; // Track the maximum number of lines for the current row
+		    let maxLines = 1; // Track the maximum number of lines for the current row
 
-		studentData.forEach((data, index) => {
-		    let textLines;
-		    if (index === 0 && columnWidths[index] >= maxNameColumnWidth) {
-		        // Only apply hyphenation if the name column width is at its maximum
-		        textLines = splitText(data, columnWidths[index] - 2, helveticaFont, fontSize);
-		    } else {
-		        textLines = [data];
-		    }
+		    studentData.forEach((data, index) => {
+		        let textLines;
+		        if (index === 0 && columnWidths[index] >= maxNameColumnWidth) {
+		            // Only apply hyphenation if the name column width is at its maximum
+		            textLines = splitText(data, columnWidths[index] - 2, helveticaFont, fontSize);
+		        } else {
+		            textLines = [data];
+		        }
 
-		    textLines.forEach((line, lineIndex) => {
-		        sectionPage.drawText(line, {
-		            x: 50 + columnWidths.slice(0, index).reduce((a, b) => a + b, 0),
-		            y: yPosition - (lineIndex * lineHeight),
-		            size: fontSize,
-		            font: helveticaFont,
-		            color: rgb(0, 0, 0),
+		        textLines.forEach((line, lineIndex) => {
+		            page.drawText(line, {
+		                x: margin + columnWidths.slice(0, index).reduce((a, b) => a + b, 0),
+		                y: yPosition - (lineIndex * lineHeight),
+		                size: fontSize,
+		                font: helveticaFont,
+		                color: rgb(0, 0, 0),
+		            });
 		        });
+		        if (textLines.length > maxLines) {
+		            maxLines = textLines.length; // Update maxLines if more lines are needed
+		        }
 		    });
-		    if (textLines.length > maxLines) {
-		        maxLines = textLines.length; // Update maxLines if more lines are needed
-		    }
-		});
 
-		// Draw a box for the ID Check column
-		const boxX = 50 + columnWidths.slice(0, 2).reduce((a, b) => a + b, 0);
-		const boxY = yPosition - (maxLines - 1) * lineHeight; // Adjust box position
-		sectionPage.drawRectangle({
-		    x: boxX,
-		    y: boxY,
-		    width: columnWidths[2] - 30, // Adjust box width
-		    height: 10, // Box height
-		    borderColor: rgb(0, 0, 0),
-		    borderWidth: 1,
-		});
+		    // Draw a box for the ID Check column
+		    const boxX = margin + columnWidths.slice(0, 2).reduce((a, b) => a + b, 0);
+		    const boxY = yPosition - (maxLines - 1) * lineHeight; // Adjust box position
+		    page.drawRectangle({
+		        x: boxX,
+		        y: boxY,
+		        width: columnWidths[2] - 30, // Adjust box width
+		        height: 10, // Box height
+		        borderColor: rgb(0, 0, 0),
+		        borderWidth: 1,
+		    });
 
-		yPosition -= maxLines * lineHeight; // Adjust yPosition for the next row
+		    // Draw horizontal line above the row
+		    page.drawLine({
+		        start: { x: margin, y: yPosition },
+		        end: { x: A4_WIDTH - margin, y: yPosition },
+		        thickness: 0.5,
+		        color: rgb(0, 0, 0),
+		    });
+
+		    yPosition -= maxLines * lineHeight; // Adjust yPosition for the next row
+		    currentIndex++;
+		}
+		return currentIndex;
+	    };
+
+	    // Create initial page and draw headers
+	    let sectionPage = pdfDoc.addPage([A4_WIDTH, A4_HEIGHT]);
+	    sectionPage.drawText(`Section ${sectionIndex + 1}`, {
+		x: A4_WIDTH / 2 - 50,
+		y: A4_HEIGHT - 20 * 2.83465,
+		size: fontSize,
+		font: helveticaBoldFont,
+		color: rgb(0, 0, 0),
 	    });
+	    yPosition -= 20;
+	    drawTableHeaders(sectionPage);
+
+	    // Draw rows and handle page overflow
+	    let startIndex = 0;
+	    while (startIndex < section.length) {
+		startIndex = drawTableRows(sectionPage, startIndex);
+		if (startIndex < section.length) {
+		    // Add new page
+		    sectionPage = pdfDoc.addPage([A4_WIDTH, A4_HEIGHT]);
+		    pageIndex++;
+		    yPosition = A4_HEIGHT - 40 * 2.83465;
+		    sectionPage.drawText(`Section ${sectionIndex + 1}`, {
+		        x: A4_WIDTH / 2 - 50,
+		        y: A4_HEIGHT - 20 * 2.83465,
+		        size: fontSize,
+		        font: helveticaBoldFont,
+		        color: rgb(0, 0, 0),
+		    });
+		    yPosition -= 20;
+		    drawTableHeaders(sectionPage);
+		}
+	    }
 	};
+
 	
 	const createCoverPage = async (pdfDoc, student, sectionIndex, helveticaFont, helveticaBoldFont, A4_WIDTH, A4_HEIGHT, rgb) => {
 	    const coverPage = pdfDoc.addPage([A4_WIDTH, A4_HEIGHT]);
@@ -413,6 +446,23 @@ createApp({
 		y: 10 * 2.83465,
 		width: 100,
 		height: 50 // Set the barcode height to 50
+	    });
+
+	    // Draw short horizontal lines at the same height as the section page lines
+	    const lineYPositions = [barcodeTopY - 30, examNameY + 40, departmentY + 20, sectionNumberY + 10];
+	    lineYPositions.forEach(y => {
+		coverPage.drawLine({
+		    start: { x: 10 * 2.83465, y: y },
+		    end: { x: 30 * 2.83465, y: y },
+		    thickness: 0.5,
+		    color: rgb(0, 0, 0),
+		});
+		coverPage.drawLine({
+		    start: { x: coverWidth - 30 * 2.83465, y: y },
+		    end: { x: coverWidth - 10 * 2.83465, y: y },
+		    thickness: 0.5,
+		    color: rgb(0, 0, 0),
+		});
 	    });
 	};
 
