@@ -119,7 +119,7 @@ createApp({
         // Function to generate PDF
         const generatePDF = async () => {
 	    console.log("Generating PDF...");
-	    const { PDFDocument, rgb, StandardFonts } = PDFLib;
+	    const { PDFDocument, rgb, StandardFonts } = PDFLib; // Ensure rgb is imported here
 	    const pdfDoc = await PDFDocument.create();
 	    const A4_WIDTH = 210 * 2.83465; // 210 mm in points
 	    const A4_HEIGHT = 297 * 2.83465; // 297 mm in points
@@ -132,171 +132,12 @@ createApp({
 		const section = sections.value[sectionIndex];
 		
 		// Create section page
-		const sectionPage = pdfDoc.addPage([A4_WIDTH, A4_HEIGHT]);
-		const sectionWidth = sectionPage.getWidth();
-		const sectionHeight = sectionPage.getHeight();
-		const fontSize = 12;
-		
-		// Section title
-		sectionPage.drawText(`Section ${sectionIndex + 1}`, {
-		    x: sectionWidth / 2,
-		    y: sectionHeight - 20 * 2.83465,
-		    size: fontSize,
-		    font: helveticaBoldFont,
-		    color: rgb(0, 0, 0),
-		    align: 'center'
-		});
-
-		for (let studentIndex = 0; studentIndex < section.length; studentIndex++) {
-		    const student = section[studentIndex];
-		    const yPosition = sectionHeight - (studentIndex + 3) * 2 * fontSize;
-		    sectionPage.drawText(`Name: ${student.Name}`, {
-		        x: 50,
-		        y: yPosition,
-		        size: fontSize,
-		        font: helveticaFont,
-		        color: rgb(0, 0, 0),
-		    });
-		    sectionPage.drawText(`Matrikelnummer: ${student.Matrikelnummer}`, {
-		        x: 200,
-		        y: yPosition,
-		        size: fontSize,
-		        font: helveticaFont,
-		        color: rgb(0, 0, 0),
-		    });
-		}
+		createSectionPage(pdfDoc, section, sectionIndex, helveticaFont, helveticaBoldFont, A4_WIDTH, A4_HEIGHT, rgb);
 
 		// Generate cover page for each student
 		for (let studentIndex = 0; studentIndex < section.length; studentIndex++) {
 		    const student = section[studentIndex];
-		    const coverPage = pdfDoc.addPage([A4_WIDTH, A4_HEIGHT]);
-		    const coverWidth = coverPage.getWidth();
-		    const coverHeight = coverPage.getHeight();
-
-		    // University name (top left) and Exam date (top right) on the same height as the top barcode
-		    const barcodeTopY = coverHeight - 20 * 2.83465;
-		    coverPage.drawText(config.value.university, {
-		        x: 10 * 2.83465,
-		        y: barcodeTopY,
-		        size: 12,
-		        font: helveticaFont,
-		        color: rgb(0, 0, 0),
-		    });
-		    coverPage.drawText(config.value.examDate, {
-		        x: coverWidth - 50 * 2.83465,
-		        y: barcodeTopY,
-		        size: 12,
-		        font: helveticaFont,
-		        color: rgb(0, 0, 0),
-		    });
-
-		    // Barcode Matrikelnummer (top center)
-		    const coverCanvasTop = document.createElement('canvas');
-		    JsBarcode(coverCanvasTop, student.Matrikelnummer, {
-		        format: "CODE128",
-		        displayValue: true,
-		        fontSize: 40, // Increase the font size for the number under the barcode
-		        height: 50, // Set the barcode height to 50
-		        textPosition: "top" // Set the text position to top
-		    });
-		    const coverBarcodeImageTop = await pdfDoc.embedPng(coverCanvasTop.toDataURL('image/png'));
-		    coverPage.drawImage(coverBarcodeImageTop, {
-		        x: coverWidth / 2 - 50,
-		        y: barcodeTopY - 30, // Adjusted to account for text position at top
-		        width: 100,
-		        height: 50
-		    });
-
-		    // Exam name (main heading, center) with word wrapping and larger font size
-		    const examName = config.value.examName;
-		    const examNameWrapped = examName.split(' ').reduce((acc, word) => {
-		        const lastLine = acc[acc.length - 1];
-		        if (lastLine && (lastLine + ' ' + word).length <= 30) {
-		            acc[acc.length - 1] = lastLine + ' ' + word;
-		        } else {
-		            acc.push(word);
-		        }
-		        return acc;
-		    }, []);
-		    coverPage.setFont(helveticaBoldFont, 32);
-		    let examNameY = coverHeight / 2 + 30 * 2.83465;
-		    examNameWrapped.forEach(line => {
-		        const examNameWidth = helveticaBoldFont.widthOfTextAtSize(line, 32);
-		        coverPage.drawText(line, {
-		            x: (coverWidth - examNameWidth) / 2,
-		            y: examNameY,
-		            size: 32,
-		            font: helveticaBoldFont,
-		            color: rgb(0, 0, 0),
-		            align: 'center'
-		        });
-		        examNameY -= 40;
-		    });
-
-		    // Department (subheading, center) with word wrapping
-		    const department = config.value.department;
-		    const departmentWrapped = department.split(' ').reduce((acc, word) => {
-		        const lastLine = acc[acc.length - 1];
-		        if (lastLine && (lastLine + ' ' + word).length <= 40) {
-		            acc[acc.length - 1] = lastLine + ' ' + word;
-		        } else {
-		            acc.push(word);
-		        }
-		        return acc;
-		    }, []);
-		    coverPage.setFont(helveticaFont, 16);
-		    let departmentY = examNameY - 20;
-		    departmentWrapped.forEach(line => {
-		        const departmentWidth = helveticaFont.widthOfTextAtSize(line, 16);
-		        coverPage.drawText(line, {
-		            x: (coverWidth - departmentWidth) / 2,
-		            y: departmentY,
-		            size: 16,
-		            font: helveticaFont,
-		            color: rgb(0, 0, 0),
-		            align: 'center'
-		        });
-		        departmentY -= 20;
-		    });
-
-		    // Grading field (bottom area)
-		    coverPage.drawRectangle({
-		        x: 10 * 2.83465,
-		        y: 40 * 2.83465,
-		        width: coverWidth - 20 * 2.83465,
-		        height: 50 * 2.83465,
-		        borderColor: rgb(0, 0, 0),
-		        borderWidth: 1
-		    });
-
-		    // Section number (bottom center, above the bottom barcode)
-		    const sectionNumberY = 10 * 2.83465 + 40 + 10; // Adjusted to be above the bottom barcode
-		    const sectionNumberText = `Section ${sectionIndex + 1}`;
-		    const sectionNumberWidth = helveticaFont.widthOfTextAtSize(sectionNumberText, fontSize);
-		    coverPage.drawText(sectionNumberText, {
-		        x: (coverWidth - sectionNumberWidth) / 2,
-		        y: sectionNumberY,
-		        size: fontSize, // Normal font size
-		        font: helveticaFont,
-		        color: rgb(0, 0, 0),
-		        align: 'center'
-		    });
-
-		    // Barcode Matrikelnummer (bottom center)
-		    const coverCanvasBottom = document.createElement('canvas');
-		    JsBarcode(coverCanvasBottom, student.Matrikelnummer, {
-		        format: "CODE128",
-		        displayValue: true,
-		        fontSize: 40, // Increase the font size for the number under the barcode
-		        height: 50 // Set the barcode height to 50
-		    });
-		    const coverBarcodeImageBottom = await pdfDoc.embedPng(coverCanvasBottom.toDataURL('image/png'));
-		    coverPage.drawImage(coverBarcodeImageBottom, {
-		        x: coverWidth / 2 - 50,
-		        y: 10 * 2.83465,
-		        width: 100,
-		        height: 50 // Set the barcode height to 50
-		    });
+		    await createCoverPage(pdfDoc, student, sectionIndex, helveticaFont, helveticaBoldFont, A4_WIDTH, A4_HEIGHT, rgb);
 		}
 		progress.value = Math.round(((sectionIndex + 1) / sections.value.length) * 100);
 		await new Promise(resolve => setTimeout(resolve, 0));
@@ -310,6 +151,270 @@ createApp({
 	    console.log("PDF generated and displayed.");
 	};
 
+	const createSectionPage = (pdfDoc, section, sectionIndex, helveticaFont, helveticaBoldFont, A4_WIDTH, A4_HEIGHT, rgb) => {
+	    const sectionPage = pdfDoc.addPage([A4_WIDTH, A4_HEIGHT]);
+	    const sectionWidth = sectionPage.getWidth();
+	    const sectionHeight = sectionPage.getHeight();
+	    const fontSize = 12;
+
+	    // Section title
+	    sectionPage.drawText(`Section ${sectionIndex + 1}`, {
+		x: sectionWidth / 2 - 50,
+		y: sectionHeight - 20 * 2.83465,
+		size: fontSize,
+		font: helveticaBoldFont,
+		color: rgb(0, 0, 0),
+	    });
+
+	    // Draw table
+	    drawTable(sectionPage, section, helveticaFont, helveticaBoldFont, sectionHeight, rgb);
+	};
+
+	const drawTable = (sectionPage, section, helveticaFont, helveticaBoldFont, sectionHeight, rgb) => {
+	    const headers = ["Name", "Student\nNumber", "ID\nCheck", "Remarks"];
+	    const maxNameColumnWidth = 300;
+	    const maxStudentNumberColumnWidth = 100; // Set a reasonable maximum width for student number
+	    const otherColumnWidths = [40, 150]; // Widths for ID Check and Remarks
+	    let yPosition = sectionHeight - 40 * 2.83465;
+	    const fontSize = 12;
+	    const lineHeight = 1.5 * fontSize; // Adjust line height for better readability
+
+	    // Calculate the dynamic width of the Name column
+	    let nameColumnWidth = 0;
+	    section.forEach(student => {
+		const nameWidth = helveticaFont.widthOfTextAtSize(student.Name, fontSize);
+		if (nameWidth > nameColumnWidth) {
+		    nameColumnWidth = nameWidth;
+		}
+	    });
+	    nameColumnWidth = Math.min(nameColumnWidth + 10, maxNameColumnWidth); // Add some padding and cap at max width
+
+	    // Calculate the dynamic width of the Student Number column
+	    let studentNumberColumnWidth = 0;
+	    section.forEach(student => {
+		const numberWidth = helveticaFont.widthOfTextAtSize(student.Matrikelnummer, fontSize);
+		if (numberWidth > studentNumberColumnWidth) {
+		    studentNumberColumnWidth = numberWidth;
+		}
+	    });
+	    studentNumberColumnWidth = Math.min(studentNumberColumnWidth + 10, maxStudentNumberColumnWidth); // Add some padding and cap at max width
+
+	    const columnWidths = [nameColumnWidth, studentNumberColumnWidth, ...otherColumnWidths];
+
+	    // Table headers
+	    headers.forEach((header, index) => {
+		const lines = header.split('\n');
+		lines.forEach((line, lineIndex) => {
+		    sectionPage.drawText(line, {
+		        x: 50 + columnWidths.slice(0, index).reduce((a, b) => a + b, 0),
+		        y: yPosition - (lineIndex * lineHeight),
+		        size: fontSize,
+		        font: helveticaBoldFont,
+		        color: rgb(0, 0, 0),
+		    });
+		});
+	    });
+
+	    // Adjust yPosition for the next row after headers
+	    yPosition -= lineHeight * 2;
+
+	    // Function to split text based on column width
+	    const splitText = (text, maxWidth, font, fontSize) => {
+		const words = text.split(' ');
+		let lines = [];
+		let currentLine = words[0];
+
+		for (let i = 1; i < words.length; i++) {
+		    const word = words[i];
+		    const width = font.widthOfTextAtSize(currentLine + ' ' + word, fontSize);
+		    if (width < maxWidth) {
+		        currentLine += ' ' + word;
+		    } else {
+		        lines.push(currentLine);
+		        currentLine = word;
+		    }
+		}
+		lines.push(currentLine);
+		return lines;
+	    };
+
+	    // Table rows
+	    section.forEach((student, studentIndex) => {
+		const studentData = [
+		    student.Name,
+		    student.Matrikelnummer,
+		    "", // ID Check (empty)
+		    ""  // Remarks (empty)
+		];
+
+		let maxLines = 1; // Track the maximum number of lines for the current row
+
+		studentData.forEach((data, index) => {
+		    let textLines;
+		    if (index === 0 && columnWidths[index] >= maxNameColumnWidth) {
+		        // Only apply hyphenation if the name column width is at its maximum
+		        textLines = splitText(data, columnWidths[index] - 2, helveticaFont, fontSize);
+		    } else {
+		        textLines = [data];
+		    }
+
+		    textLines.forEach((line, lineIndex) => {
+		        sectionPage.drawText(line, {
+		            x: 50 + columnWidths.slice(0, index).reduce((a, b) => a + b, 0),
+		            y: yPosition - (lineIndex * lineHeight),
+		            size: fontSize,
+		            font: helveticaFont,
+		            color: rgb(0, 0, 0),
+		        });
+		    });
+		    if (textLines.length > maxLines) {
+		        maxLines = textLines.length; // Update maxLines if more lines are needed
+		    }
+		});
+
+		// Draw a box for the ID Check column
+		const boxX = 50 + columnWidths.slice(0, 2).reduce((a, b) => a + b, 0);
+		const boxY = yPosition - (maxLines - 1) * lineHeight; // Adjust box position
+		sectionPage.drawRectangle({
+		    x: boxX,
+		    y: boxY,
+		    width: columnWidths[2] - 30, // Adjust box width
+		    height: 10, // Box height
+		    borderColor: rgb(0, 0, 0),
+		    borderWidth: 1,
+		});
+
+		yPosition -= maxLines * lineHeight; // Adjust yPosition for the next row
+	    });
+	};
+	
+	const createCoverPage = async (pdfDoc, student, sectionIndex, helveticaFont, helveticaBoldFont, A4_WIDTH, A4_HEIGHT, rgb) => {
+	    const coverPage = pdfDoc.addPage([A4_WIDTH, A4_HEIGHT]);
+	    const coverWidth = coverPage.getWidth();
+	    const coverHeight = coverPage.getHeight();
+
+	    // University name (top left) and Exam date (top right) on the same height as the top barcode
+	    const barcodeTopY = coverHeight - 20 * 2.83465;
+	    coverPage.drawText(config.value.university, {
+		x: 10 * 2.83465,
+		y: barcodeTopY,
+		size: 12,
+		font: helveticaFont,
+		color: rgb(0, 0, 0),
+	    });
+	    coverPage.drawText(config.value.examDate, {
+		x: coverWidth - 50 * 2.83465,
+		y: barcodeTopY,
+		size: 12,
+		font: helveticaFont,
+		color: rgb(0, 0, 0),
+	    });
+
+	    // Barcode Matrikelnummer (top center)
+	    const coverCanvasTop = document.createElement('canvas');
+	    JsBarcode(coverCanvasTop, student.Matrikelnummer, {
+		format: "CODE128",
+		displayValue: true,
+		fontSize: 40, // Increase the font size for the number under the barcode
+		height: 50, // Set the barcode height to 50
+		textPosition: "top" // Set the text position to top
+	    });
+	    const coverBarcodeImageTop = await pdfDoc.embedPng(coverCanvasTop.toDataURL('image/png'));
+	    coverPage.drawImage(coverBarcodeImageTop, {
+		x: coverWidth / 2 - 50,
+		y: barcodeTopY - 30, // Adjusted to account for text position at top
+		width: 100,
+		height: 50
+	    });
+
+	    // Exam name (main heading, center) with word wrapping and larger font size
+	    const examName = config.value.examName;
+	    const examNameWrapped = examName.split(' ').reduce((acc, word) => {
+		const lastLine = acc[acc.length - 1];
+		if (lastLine && (lastLine + ' ' + word).length <= 30) {
+		    acc[acc.length - 1] = lastLine + ' ' + word;
+		} else {
+		    acc.push(word);
+		}
+		return acc;
+	    }, []);
+	    coverPage.setFont(helveticaBoldFont, 32);
+	    let examNameY = coverHeight / 2 + 30 * 2.83465;
+	    examNameWrapped.forEach(line => {
+		const examNameWidth = helveticaBoldFont.widthOfTextAtSize(line, 32);
+		coverPage.drawText(line, {
+		    x: (coverWidth - examNameWidth) / 2,
+		    y: examNameY,
+		    size: 32,
+		    font: helveticaBoldFont,
+		    color: rgb(0, 0, 0),
+		});
+		examNameY -= 40;
+	    });
+
+	    // Department (subheading, center) with word wrapping
+	    const department = config.value.department;
+	    const departmentWrapped = department.split(' ').reduce((acc, word) => {
+		const lastLine = acc[acc.length - 1];
+		if (lastLine && (lastLine + ' ' + word).length <= 40) {
+		    acc[acc.length - 1] = lastLine + ' ' + word;
+		} else {
+		    acc.push(word);
+		}
+		return acc;
+	    }, []);
+	    coverPage.setFont(helveticaFont, 16);
+	    let departmentY = examNameY - 20;
+	    departmentWrapped.forEach(line => {
+		const departmentWidth = helveticaFont.widthOfTextAtSize(line, 16);
+		coverPage.drawText(line, {
+		    x: (coverWidth - departmentWidth) / 2,
+		    y: departmentY,
+		    size: 16,
+		    font: helveticaFont,
+		    color: rgb(0, 0, 0),
+		});
+		departmentY -= 20;
+	    });
+
+	    // Grading field (bottom area)
+	    coverPage.drawRectangle({
+		x: 10 * 2.83465,
+		y: 40 * 2.83465,
+		width: coverWidth - 20 * 2.83465,
+		height: 50 * 2.83465,
+		borderColor: rgb(0, 0, 0),
+		borderWidth: 1
+	    });
+
+	    // Section number (bottom center, above the bottom barcode)
+	    const sectionNumberY = 10 * 2.83465 + 40 + 10; // Adjusted to be above the bottom barcode
+	    const sectionNumberText = `Section ${sectionIndex + 1}`;
+	    const sectionNumberWidth = helveticaFont.widthOfTextAtSize(sectionNumberText, 12);
+	    coverPage.drawText(sectionNumberText, {
+		x: (coverWidth - sectionNumberWidth) / 2,
+		y: sectionNumberY,
+		size: 12, // Normal font size
+		font: helveticaFont,
+		color: rgb(0, 0, 0),
+	    });
+
+	    // Barcode Matrikelnummer (bottom center)
+	    const coverCanvasBottom = document.createElement('canvas');
+	    JsBarcode(coverCanvasBottom, student.Matrikelnummer, {
+		format: "CODE128",
+		displayValue: true,
+		fontSize: 40, // Increase the font size for the number under the barcode
+		height: 50 // Set the barcode height to 50
+	    });
+	    const coverBarcodeImageBottom = await pdfDoc.embedPng(coverCanvasBottom.toDataURL('image/png'));
+	    coverPage.drawImage(coverBarcodeImageBottom, {
+		x: coverWidth / 2 - 50,
+		y: 10 * 2.83465,
+		width: 100,
+		height: 50 // Set the barcode height to 50
+	    });
+	};
 
         // Sort students and divide them into sections
         const sortAndSectionStudents = async () => {
