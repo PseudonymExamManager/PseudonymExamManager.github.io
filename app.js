@@ -563,6 +563,47 @@ createApp({
         // Watch for changes in config and trigger delayed processing
         watch([config], delayedProcessing, { deep: true });
 
+	// Set a cookie for a very long time (effectively forever)
+	// Only 'department' and 'university' values are stored
+	const setCookie = (name, value) => {
+	    const d = new Date();
+	    d.setTime(d.getTime() + (100 * 365 * 24 * 60 * 60 * 1000)); // 100 years
+	    const expires = "expires=" + d.toUTCString();
+	    document.cookie = name + "=" + value + ";" + expires + ";path=/";
+	};
+
+	// Get a cookie by name
+	const getCookie = (name) => {
+	    const nameEQ = name + "=";
+	    const ca = document.cookie.split(';');
+	    for (let i = 0; i < ca.length; i++) {
+		let c = ca[i];
+		while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+		if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+	    }
+	    return null;
+	};
+
+	// Load 'department' and 'university' from cookies
+	const loadConfigFromCookies = () => {
+	    const savedDepartment = getCookie('exam_department');
+	    const savedUniversity = getCookie('exam_university');
+	    if (savedDepartment) config.value.department = savedDepartment;
+	    if (savedUniversity) config.value.university = savedUniversity;
+	};
+
+	// Save 'department' and 'university' to cookies when they change
+	const watchConfigChanges = () => {
+	    watch([() => config.value.department, () => config.value.university], ([newDepartment, newUniversity]) => {
+		setCookie('exam_department', newDepartment);
+		setCookie('exam_university', newUniversity);
+	    });
+	};
+
+	// Call this function when the app is created
+	loadConfigFromCookies();
+	watchConfigChanges();
+	
         return {
             students,
             config,
