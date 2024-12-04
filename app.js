@@ -15,8 +15,8 @@ createApp({
             university: 'Example University',
             sectionSize: 20,
 	    debug: false, // Debug mode variable
-	    projectSource: 'https://github.com/example/project', // Project source URL
-	    privacyInfo: 'https://example.com/privacy' // Privacy information URL
+	    projectSource: 'https://github.com/PseudonymExamManager/PseudonymExamManager.github.io', // Project source URL
+	    privacyInfo: 'https://pseudonymexammanager.github.io/privacy' // Privacy information URL
         });
         const loading = ref(false);
         const progress = ref(0);
