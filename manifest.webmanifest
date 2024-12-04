@@ -1,0 +1,17 @@
+{
+    "name": "PseudonymExamManager",
+    "short_name": "ExamPWA",
+    "description": "A Progressive Web App for managing exams",
+    "scope": "/",
+    "start_url": "/",
+    "background_color": "#ffffff",
+    "theme_color": "#000000",
+    "display": "standalone",
+    "icons": [
+        {
+            "src": "/img/icon.png",
+            "type": "image/png",
+            "sizes": "192x192"
+        }
+    ]
+}
