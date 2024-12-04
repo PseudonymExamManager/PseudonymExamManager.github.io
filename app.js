@@ -14,7 +14,9 @@ createApp({
             department: 'Computer Science',
             university: 'Example University',
             sectionSize: 20,
-            debug: false // Debug mode variable
+	    debug: false, // Debug mode variable
+	    projectSource: 'https://github.com/example/project', // Project source URL
+	    privacyInfo: 'https://example.com/privacy' // Privacy information URL
         });
         const loading = ref(false);
         const progress = ref(0);
@@ -121,6 +123,8 @@ createApp({
 	    console.log("Generating PDF...");
 	    const { PDFDocument, rgb, StandardFonts } = PDFLib; // Ensure rgb is imported here
 	    const pdfDoc = await PDFDocument.create();
+	    pdfDoc.setCreator(config.value.projectSource);
+	    pdfDoc.setProducer('PseudonymExamManager');
 	    const A4_WIDTH = 210 * 2.83465; // 210 mm in points
 	    const A4_HEIGHT = 297 * 2.83465; // 297 mm in points
 
@@ -273,7 +277,7 @@ createApp({
 		    });
 
 		    // Draw horizontal line 2px above the row
-		    const lineY = yPosition + 12;
+		    const lineY = yPosition + 11;
 		    page.drawLine({
 		        start: { x: 0, y: lineY }, // Start at the left edge
 		        end: { x: A4_WIDTH, y: lineY }, // End at the right edge

@@ -36,6 +36,10 @@
         <div class="right-panel flex-2 p-5 border-t md:border-t-0 md:border-l border-gray-300 w-full md:w-3/5 h-full">
             <h2 class="text-xl font-bold mb-4">Generated PDF</h2>
             <iframe id="pdf-preview" class="w-full h-full"></iframe>
+            <div class="mt-4 text-right">
+                <a :href="config.projectSource" target="_blank" class="text-blue-500 hover:underline">Project Source</a> | 
+                <a :href="config.privacyInfo" target="_blank" class="text-blue-500 hover:underline">Privacy Information</a>
+            </div>
         </div>
         <div v-if="loading" class="overlay fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center z-50">
             <ve-progress :progress="progress" size="100" color="#3f79ff"></ve-progress>
