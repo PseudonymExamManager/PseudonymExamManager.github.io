@@ -46,21 +46,69 @@ CampusNet and related applications are used at 70 universities in Germany, Austr
    - The generated PDF will be displayed in the iframe.
    - **Note**: The PDF must be printed to be used for the exam.
 
-### Configuring the BCST-33 Barcode Scanner
+## Configuring the BCST-33 Barcode Scanner (Example)
 
-To configure the BCST-33 Barcode Scanner for use with this application, follow these steps:
+To configure the BCST-33 Barcode Scanner for use with this application, follow these steps. Note that the scanner can only read barcodes from paper, so it is essential to print the necessary pages beforehand. Alternatively, you can print this entire guide.
 
-1. **Set Up the Scanner**:
-   - Connect the BCST-33 Barcode Scanner to your computer via USB.
+## 1. Set Up the Scanner:
+1. Connect the BCST-33 Barcode Scanner to your computer via USB.
 
-2. **Configure the Scanner**:
-   - Scan the following configuration barcodes to set up the scanner for Code 128 barcodes:
-     - **Enter Setup Mode**: !Enter Setup Mode
-     - **Enable Code 128**: !Enable Code 128
-     - **Exit Setup Mode**: !Exit Setup Mode
+## 2. Configure the Scanner:
+1. **Print the Configuration Barcodes:**
+    - Ensure you have printed the pages containing the configuration barcodes. The scanner can only read barcodes from paper.
 
-3. **Test the Scanner**:
-   - Open the `index.html` file in your browser and scan a printed barcode to ensure it is read correctly.
+2. **Scan the Configuration Barcodes:**
+    - **Enter Setup Mode:** Scan the barcode labeled "Enter Setup Mode" to begin the configuration process.
+
+    
+    <picture>
+      <img alt="Enter Setup Mode Barcode" src="https://raw.githubusercontent.com/PseudonymExamManager/PseudonymExamManager.github.io/refs/heads/main/img/ENTER_SETUP_MODE_BARCODE.png" width="300">
+    </picture>
+
+    - **Mute:** Scan the barcode labeled "Mute" to disable the scanner's beep sound during scanning.
+    
+    <picture>
+      <img alt="Mute Barcode" src="https://github.com/PseudonymExamManager/PseudonymExamManager.github.io/blob/main/img/MUTE_BARCODE.png" width="300">
+    </picture>
+    
+    - **64ms Delay:** Scan the barcode labeled "64ms" to set a 64ms delay. This ensures compatibility with slower computers. Adjust to a higher speed if necessary.
+    
+    <picture>
+      <img alt="64ms Delay Barcode" src="https://github.com/PseudonymExamManager/PseudonymExamManager.github.io/blob/main/img/64MS_DELAY_BARCODE.png" width="300">
+    </picture>
+    
+    - **Ignore Caps Lock:** Scan the barcode labeled "Ignore Caps Lock" to prevent output errors caused by the Caps Lock key.
+    
+    <picture>
+      <img alt="Ignore Caps Lock Barcode" src="https://github.com/PseudonymExamManager/PseudonymExamManager.github.io/blob/main/img/IGNORE_CAPS_LOCK_BARCODE.png" width="300">
+    </picture>
+    
+    - **Prefix Setup:** Scan the barcode labeled "Prefix Setup" to configure a prefix for the scanner.
+    
+    <picture>
+      <img alt="Prefix Setup Barcode" src="https://github.com/PseudonymExamManager/PseudonymExamManager.github.io/blob/main/img/PREFIX_SETUP_BARCODE.png" width="300">
+    </picture>
+    
+    - **"ACK" Prefix:** Scan the barcode labeled "ACK" to set "Ctrl+F" as the prefix. This allows the scanner to automatically search and highlight the student number on the CampusNet page, similar to manually pressing "Ctrl+F" and entering the number, but much faster.
+    
+    <picture>
+      <img alt="ACK Prefix Barcode" src="https://github.com/PseudonymExamManager/PseudonymExamManager.github.io/blob/main/img/ACK_PREFIX_BARCODE.png" width="300">
+    </picture>
+    
+    - **Save and Exit:** Scan the barcode labeled "Save and Exit" to save the settings and exit setup mode.
+    
+    <picture>
+      <img alt="Save and Exit Barcode" src="https://github.com/PseudonymExamManager/PseudonymExamManager.github.io/blob/main/img/SAVE_AND_EXIT_BARCODE.png" width="300">
+    </picture>
+
+## 3. Test the Scanner:
+1. Open the `index.html` file in your browser.
+2. Scan a printed barcode to ensure it is read correctly.
+
+## Explanation of the Prefix Setup:
+The goal of setting up the prefix is to enable the scanner to automatically search for the student number on the CampusNet page. When you scan a barcode, the scanner sends the "Ctrl+F" command followed by the student number. This mimics the action of manually pressing "Ctrl+F" and typing the number, but it is much faster because it automates the process.
+
+By using this setup, you can quickly locate and highlight student numbers on the CampusNet page, improving efficiency and reducing the time spent on manual searches.
 
 ## Privacy Information
 
