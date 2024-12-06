@@ -30,7 +30,7 @@ This WebApp operates entirely locally within your browser. No data entered into 
 - **Data Processing**: All data processing, including sorting and generating PDFs, is performed locally in the browser. No data is sent to external servers.
 - **Debug Mode**: If enabled, debug mode logs additional information to the console for troubleshooting purposes. This information is also processed locally and not transmitted.
 
-### Data processing directory in accordance with Art. 30 GDPR
+### Template for  Data processing directory in accordance with Art. 30 GDPR
 
 | **Processing Activity** | **Description** |
 |--------------------------|------------------|
@@ -74,7 +74,7 @@ Diese WebApp wird vollständig lokal in Ihrem Browser ausgeführt. Keine in die 
 - **Datenverarbeitung**: Alle Datenverarbeitungen, einschließlich Sortierung und PDF-Generierung, werden lokal im Browser durchgeführt. Es werden keine Daten an externe Server gesendet.
 - **Debug-Modus**: Wenn aktiviert, protokolliert der Debug-Modus zusätzliche Informationen in der Konsole zur Fehlerbehebung. Diese Informationen werden ebenfalls lokal verarbeitet und nicht übertragen.
 
-### Datenverarbeitungsverzeichnis nach Art. 30 DSGVO
+### Vorlage für Datenverarbeitungsverzeichnis nach Art. 30 DSGVO
 
 | **Verarbeitungsvorgang** | **Beschreibung** |
 |--------------------------|------------------|
