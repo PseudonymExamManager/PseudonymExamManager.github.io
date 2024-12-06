@@ -1,4 +1,5 @@
 ### Datenschutzinformation (Privacy Information)
+[Untenstehende deutsche Version](https://pseudonymexammanager.github.io/privacy#deutsch)
 
 #### English
 
