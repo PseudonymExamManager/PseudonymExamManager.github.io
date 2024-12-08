@@ -54,7 +54,7 @@ To configure the BCST-33 Barcode Scanner for use with this application, follow t
 
 ### 2. Configure the Scanner:
 1. **Print the Configuration Barcodes:**
-    - Ensure you have [printed the pages](https://github.com/PseudonymExamManager/PseudonymExamManager.github.io/blob/c999f591c7dddd6db735b0ef70c16fba19f1be64/docs/BCST-33_Complete_Manual-V1_DE.pdf) (8,12,22,63,55,75) containing the configuration barcodes. The scanner can only read barcodes from paper.
+    - Ensure you have [printed the pages](https://github.com/PseudonymExamManager/PseudonymExamManager.github.io/blob/main/docs/BCST-33_Complete_Manual-V1_DE_SelectedPages.pdf) (8,12,22,63,55,75) containing the configuration barcodes. The scanner can only read barcodes from paper.
 
 2. **Scan the Configuration Barcodes:**
     - **Enter Setup Mode:** Scan the barcode labeled "Enter Setup Mode" to begin the configuration process.
