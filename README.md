@@ -32,8 +32,6 @@ CampusNet and related applications are used at 70 universities in Germany, Austr
 
 ### Usage
 
-### Usage
-
 1. **Upload CSV File**:
    - Click on the file input to upload the CSV file containing student data exported from CampusNet.
 
@@ -50,10 +48,10 @@ CampusNet and related applications are used at 70 universities in Germany, Austr
 
 To configure the BCST-33 Barcode Scanner for use with this application, follow these steps. Note that the scanner can only read barcodes from paper, so it is essential to print the necessary pages beforehand. Alternatively, you can print this entire guide.
 
-## 1. Set Up the Scanner:
+### 1. Set Up the Scanner:
 1. Connect the BCST-33 Barcode Scanner to your computer via USB.
 
-## 2. Configure the Scanner:
+### 2. Configure the Scanner:
 1. **Print the Configuration Barcodes:**
     - Ensure you have [printed the pages](https://github.com/PseudonymExamManager/PseudonymExamManager.github.io/blob/c999f591c7dddd6db735b0ef70c16fba19f1be64/docs/BCST-33_Complete_Manual-V1_DE.pdf) (8,12,22,63,55,75) containing the configuration barcodes. The scanner can only read barcodes from paper.
 
@@ -101,11 +99,11 @@ To configure the BCST-33 Barcode Scanner for use with this application, follow t
       <img alt="Save and Exit Barcode" src="https://github.com/PseudonymExamManager/PseudonymExamManager.github.io/blob/main/img/SAVE_AND_EXIT_BARCODE.png" width="300">
     </picture>
 
-## 3. Test the Scanner:
+### 3. Test the Scanner:
 1. Open the `index.html` file in your browser.
 2. Scan a printed barcode to ensure it is read correctly.
 
-## Explanation of the Prefix Setup:
+### Explanation of the Prefix Setup:
 The goal of setting up the prefix is to enable the scanner to automatically search for the student number on the CampusNet page. When you scan a barcode, the scanner sends the "Ctrl+F" command followed by the student number. This mimics the action of manually pressing "Ctrl+F" and typing the number, but it is much faster because it automates the process.
 
 By using this setup, you can quickly locate and highlight student numbers on the CampusNet page, improving efficiency and reducing the time spent on manual searches.
