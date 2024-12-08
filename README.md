@@ -14,6 +14,7 @@ CampusNet and related applications are used at 70 universities in Germany, Austr
 - **Data Sorting and Sectioning**: The app sorts students by name and sections them based on the specified section size.
 - **Cover Sheet Generation**: Generates cover sheets for each student with university name, exam date, exam name, department, section number, and a barcode (containing the matriculation number) twice on the sheet.
 - **Grade Entry and Barcode Scanning**: After grading, the department secretariat scans the barcode on the cover sheet to find the correct student by matriculation number and enter the grade into CampusNet.
+- **Section Marking with Horizontal Lines**: Draws horizontal lines on both the section pages and cover pages of a PDF to mark specific cover pages. These lines act like tabs, making it easier to quickly find the right page when distributing cover sheets. You can also hold the cover sheet against the section page to check if the lines match up, ensuring you have the correct cover page.
 
 ## Getting Started
 
