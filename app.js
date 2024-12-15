@@ -44,7 +44,7 @@ createApp({
 	    const lines = csv.split('\n');
 	    if (config.value.debug) console.log("CSV Lines:", lines);
 
-	    const examInfo = lines[0].split(',');
+	    const examInfo = lines[0].split('\t');
 	    if (config.value.debug) console.log("Exam Info Line:", examInfo);
 
 	    config.value.examName = examInfo[1];
@@ -96,12 +96,12 @@ createApp({
 	    
 	    if (config.value.debug) console.log("Exam Date:", config.value.examDate);
 
-	    const headers = lines[1].split(',');
+	    const headers = lines[1].split('\t');
 	    if (config.value.debug) console.log("CSV Headers:", headers);
 
 	    const result = [];
 	    for (let i = 2; i < lines.length; i++) {
-		const currentline = lines[i].split(',');
+		const currentline = lines[i].split('\t');
 		if (config.value.debug) console.log(`Processing Line ${i}:`, currentline);
 
 		if (currentline.length === headers.length) {
