@@ -14,7 +14,7 @@ createApp({
             department: 'Computer Science',
             university: 'Example University',
             sectionSize: 20,
-	    debug: false, // Debug mode variable
+	    debug: true, // Debug mode variable
 	    projectSource: 'https://github.com/PseudonymExamManager/PseudonymExamManager.github.io', // Project source URL
 	    privacyInfo: 'https://pseudonymexammanager.github.io/privacy' // Privacy information URL
         });
@@ -39,28 +39,25 @@ createApp({
         };
 
         // Function to parse CSV data
-        const parseCSV = async (csv) => {
+	const parseCSV = async (csv) => {
 	    if (config.value.debug) console.log("Parsing CSV...");
 	    const lines = csv.split('\n');
 	    if (config.value.debug) console.log("CSV Lines:", lines);
 
-	    const examInfo = lines[0].split('\t');
+	    const examInfo = parseLine(lines[0]);
 	    if (config.value.debug) console.log("Exam Info Line:", examInfo);
 
 	    config.value.examName = examInfo[1];
 	    if (config.value.debug) console.log("Exam Name:", config.value.examName);
 	    
-	    // Bug description: The date field may contain a comma after the weekday, causing incorrect parsing.
-	    // Attempt to extract the date from field 4
-	    let dateField = examInfo[4];
+	    let dateField = examInfo[4] || "";
 	    if (config.value.debug) console.log("Initial Date Field:", dateField);
 
 	    let dateMatch = dateField.match(/\b\d{1,2}\.\s\w+\s\d{4}\b/);
 	    if (config.value.debug) console.log("Initial Date Match:", dateMatch);
 	    
-	    // If date extraction from field 4 fails, try field 5
 	    if (!dateMatch) {
-		dateField = examInfo[5];
+		dateField = examInfo[5] || "";
 		if (config.value.debug) console.log("Fallback Date Field:", dateField);
 
 		dateMatch = dateField.match(/\b\d{1,2}\.\s\w+\s\d{4}\b/);
@@ -96,26 +93,36 @@ createApp({
 	    
 	    if (config.value.debug) console.log("Exam Date:", config.value.examDate);
 
-	    const headers = lines[1].split('\t');
+	    const headers = parseLine(lines[1]);
 	    if (config.value.debug) console.log("CSV Headers:", headers);
 
 	    const result = [];
 	    for (let i = 2; i < lines.length; i++) {
-		const currentline = lines[i].split('\t');
+		const currentline = parseLine(lines[i]);
 		if (config.value.debug) console.log(`Processing Line ${i}:`, currentline);
 
-		if (currentline.length === headers.length) {
-		    const obj = {};
-		    for (let j = 1; j < headers.length; j++) {
-		        obj[headers[j].trim()] = currentline[j].trim();
-		    }
-		    result.push(obj);
+		const obj = {};
+		for (let j = 1; j < headers.length; j++) {
+		    obj[headers[j].trim()] = currentline[j] !== undefined ? currentline[j].trim() : "";
 		}
+		result.push(obj);
+
 		progress.value = Math.round((i / lines.length) * 100);
 		await new Promise(resolve => setTimeout(resolve, 0));
 	    }
 	    students.value = result;
 	    if (config.value.debug) console.log("Students:", students.value);
+	};
+
+	// Helper function to parse a line considering tabs within quotes
+	const parseLine = (line) => {
+	    const regex = /(?:\"([^\"]*)\")|([^\t]+)/g;
+	    const result = [];
+	    let match;
+	    while ((match = regex.exec(line)) !== null) {
+		result.push(match[1] !== undefined ? match[1] : (match[2] !== undefined ? match[2] : ""));
+	    }
+	    return result;
 	};
 
         // Function to generate PDF
@@ -476,7 +483,10 @@ createApp({
         // Sort students and divide them into sections
         const sortAndSectionStudents = async () => {
 	    console.log("Sorting and sectioning students...");
-	    
+
+	    // Filter out students without Matrikelnummer
+	    students.value = students.value.filter(student => student.Matrikelnummer);
+
 	    // Sort students by Name, Vorname, and Mittelname
 	    students.value.sort((a, b) => {
 		if (a.Name !== b.Name) return a.Name.localeCompare(b.Name);
@@ -516,12 +526,19 @@ createApp({
 		        if (studentsWithSameFirstName.length > 1) {
 		            // If there are multiple students with the same full name, add the Mittelname
 		            studentsWithSameFirstName.forEach(student => {
-		                student.Name = `${student.Name}, ${student.Vorname}, ${student.Mittelname}`;
+		                if (!student.Name.includes(student.Vorname)) {
+		                    student.Name = `${student.Name}, ${student.Vorname}`;
+		                }
+		                if (!student.Name.includes(student.Mittelname)) {
+		                    student.Name = `${student.Name}, ${student.Mittelname}`;
+		                }
 		            });
 		        } else {
-		            // If the full name is unique, add only the Vorname
+		            // If the full name is unique, add only the Vorname if not already included
 		            studentsWithSameFirstName.forEach(student => {
-		                student.Name = `${student.Name}, ${student.Vorname}`;
+		                if (!student.Name.includes(student.Vorname)) {
+		                    student.Name = `${student.Name}, ${student.Vorname}`;
+		                }
 		            });
 		        }
 		    });
