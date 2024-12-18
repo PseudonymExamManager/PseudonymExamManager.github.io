@@ -24,21 +24,21 @@ createApp({
 
         // Handle file upload and initiate CSV parsing
         const handleFileUpload = (event) => {
-            loading.value = true;
-            progress.value = 0;
-            const file = event.target.files[0];
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                const csv = e.target.result;
-                await parseCSV(csv);
-                await sortAndSectionStudents();
-                generatePDF();
-                loading.value = false;
-            };
-            reader.readAsText(file);
-        };
+	    loading.value = true;
+	    progress.value = 0;
+	    const file = event.target.files[0];
+	    const reader = new FileReader();
+	    reader.onload = async (e) => {
+		const csv = new TextDecoder('iso-8859-1').decode(e.target.result);
+		await parseCSV(csv);
+		await sortAndSectionStudents();
+		generatePDF();
+		loading.value = false;
+	    };
+	    reader.readAsArrayBuffer(file);
+	};
 
-        // Function to parse CSV data
+	// Function to parse CSV data
 	const parseCSV = async (csv) => {
 	    if (config.value.debug) console.log("Parsing CSV...");
 	    const lines = csv.split('\n');
@@ -88,7 +88,7 @@ createApp({
 		const formattedDate = new Date(`${year}-${months[month]}-${day.replace('.', '')}`).toISOString().split('T')[0];
 		config.value.examDate = formattedDate;
 	    } else {
-		config.value.examDate = "Date not found";
+		config.value.examDate = "Date not set";
 	    }
 	    
 	    if (config.value.debug) console.log("Exam Date:", config.value.examDate);
