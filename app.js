@@ -1,20 +1,23 @@
 const { createApp, ref, watch } = Vue;
 const { VeProgress } = veprogress;
+const { Vue3Slider } = window['vue3-slider'];
 
 createApp({
-    components: {
-        VeProgress
+  components: {
+    VeProgress,
+    Vue3Slider
     },
     setup() {
         const students = ref([]);
-        const sections = ref([]);
+        const sections = ref([]); // Detailed information about students in sections
+    	const sliderSections = ref([]); // Information for sliders
         const config = ref({
             examName: '',
             examDate: '',
             department: 'Computer Science',
             university: 'Example University',
             sectionSize: 20,
-	    debug: true, // Debug mode variable
+	    debug: false, // Debug mode variable
 	    projectSource: 'https://github.com/PseudonymExamManager/PseudonymExamManager.github.io', // Project source URL
 	    privacyInfo: 'https://pseudonymexammanager.github.io/privacy' // Privacy information URL
         });
@@ -31,6 +34,7 @@ createApp({
 	    reader.onload = async (e) => {
 		const csv = new TextDecoder('iso-8859-1').decode(e.target.result);
 		await parseCSV(csv);
+		//initializeSliders(); // Initialize sliders after parsing the CSV
 		await sortAndSectionStudents();
 		generatePDF();
 		loading.value = false;
@@ -555,6 +559,38 @@ createApp({
 	    console.log("Sections:", sections.value);
 	};
 
+        // Function to initialize sliders
+	const initializeSliders = () => {
+	    const numberOfSections = Math.ceil(students.value.length / config.value.sectionSize);
+	    sliderSections.value = Array.from({ length: numberOfSections }, (_, i) => ({
+		id: i + 1,
+		size: config.value.sectionSize,
+		firstInitial: null,
+		lastInitial: null
+	    }));
+	    sliderSections.value.push({ id: null, size: 0, firstInitial: null, lastInitial: null }); // NULL-Slider
+	    sortAndSectionStudents();
+	};
+
+	// Function to adjust slider count dynamically
+	const adjustSliderCount = () => {
+	    const lastSection = sliderSections.value[sliderSections.value.length - 1];
+	    if (lastSection.size < students.value.length) {
+		sliderSections.value.push({ id: sliderSections.value.length + 1, size: 0, firstInitial: null, lastInitial: null });
+	    } else if (sliderSections.value.length > 1 && sliderSections.value[sliderSections.value.length - 2].size === 0) {
+		sliderSections.value.pop();
+	    }
+	};
+
+	// Function to update sections on slider change
+	const updateSectionsOnSliderChange = () => {
+	    sliderSections.value.forEach(section => {
+		section.firstInitial = null;
+		section.lastInitial = null;
+	    });
+	    delayedProcessing();
+	};
+        
         // Delayed processing to handle user input changes
         const delayedProcessing = () => {
             clearTimeout(typingTimer);
@@ -623,11 +659,15 @@ createApp({
 	
         return {
             students,
-            config,
-            handleFileUpload,
-            loading,
-            progress,
-            immediateProcessing
+	    sliderSections,
+	    config,
+	    handleFileUpload,
+	    initializeSliders,
+	    adjustSliderCount,
+	    updateSectionsOnSliderChange,
+	    loading,
+	    progress,
+	    immediateProcessing
         };
     }
 }).mount('#app');
