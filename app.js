@@ -115,7 +115,6 @@ createApp({
 	    }
 	    students.value = result;
 	    if (config.value.debug) console.log("Students:", students.value);
-	    initializeSections(); // Initialize sections after parsing the CSV
 	};
 
 	// Helper function to parse a line considering tabs within quotes
@@ -548,6 +547,9 @@ createApp({
 		    });
 		}
 	    });
+	    
+	    
+	    initializeSections(); // Initialize sections after parsing the CSV
 
 	    // Divide students into sections based on the section size
 	    sections.value = [];
@@ -568,7 +570,6 @@ createApp({
 	    if (totalSize !== students.value.length) {
 	      sectionSizes.value[sectionSizes.value.length - 1] += students.value.length - totalSize;
 	    }
-	    sectionSizes.value = sectionSizes.value.map(size => Math.max(1, size));
 	    studentsInitialized.value = true;
 	};  
 
@@ -600,6 +601,13 @@ createApp({
 		// Handle mismatch
 	      }
 	    }, { deep: true });
+	
+	 // Watch for changes in sectionSize and reinitialize sections
+	    watch(() => config.value.sectionSize, (newSize, oldSize) => {
+	      if (newSize !== oldSize) {
+		initializeSections();
+	      }
+	    });
         
         // Delayed processing to handle user input changes
         const delayedProcessing = () => {
