@@ -1,16 +1,15 @@
 const { createApp, ref, watch } = Vue;
 const { VeProgress } = veprogress;
-const { Vue3Slider } = window['vue3-slider'];
 
 createApp({
   components: {
-    VeProgress,
-    Vue3Slider
+    VeProgress
     },
     setup() {
         const students = ref([]);
         const sections = ref([]); // Detailed information about students in sections
-    	const sliderSections = ref([]); // Information for sliders
+    	const sectionSizes = ref([]);
+    	const studentsInitialized = ref(false);
         const config = ref({
             examName: '',
             examDate: '',
@@ -116,6 +115,7 @@ createApp({
 	    }
 	    students.value = result;
 	    if (config.value.debug) console.log("Students:", students.value);
+	    initializeSections(); // Initialize sections after parsing the CSV
 	};
 
 	// Helper function to parse a line considering tabs within quotes
@@ -559,37 +559,47 @@ createApp({
 	    console.log("Sections:", sections.value);
 	};
 
-        // Function to initialize sliders
-	const initializeSliders = () => {
+	// Function to initialize sections
+	const initializeSections = () => {
 	    const numberOfSections = Math.ceil(students.value.length / config.value.sectionSize);
-	    sliderSections.value = Array.from({ length: numberOfSections }, (_, i) => ({
-		id: i + 1,
-		size: config.value.sectionSize,
-		firstInitial: null,
-		lastInitial: null
-	    }));
-	    sliderSections.value.push({ id: null, size: 0, firstInitial: null, lastInitial: null }); // NULL-Slider
-	    sortAndSectionStudents();
-	};
-
-	// Function to adjust slider count dynamically
-	const adjustSliderCount = () => {
-	    const lastSection = sliderSections.value[sliderSections.value.length - 1];
-	    if (lastSection.size < students.value.length) {
-		sliderSections.value.push({ id: sliderSections.value.length + 1, size: 0, firstInitial: null, lastInitial: null });
-	    } else if (sliderSections.value.length > 1 && sliderSections.value[sliderSections.value.length - 2].size === 0) {
-		sliderSections.value.pop();
+	    sectionSizes.value = Array(numberOfSections).fill(config.value.sectionSize);
+	    // Adjust the last section size to fit all students
+	    const totalSize = sectionSizes.value.reduce((acc, size) => acc + size, 0);
+	    if (totalSize !== students.value.length) {
+	      sectionSizes.value[sectionSizes.value.length - 1] += students.value.length - totalSize;
 	    }
-	};
+	    sectionSizes.value = sectionSizes.value.map(size => Math.max(1, size));
+	    studentsInitialized.value = true;
+	};  
 
-	// Function to update sections on slider change
-	const updateSectionsOnSliderChange = () => {
-	    sliderSections.value.forEach(section => {
-		section.firstInitial = null;
-		section.lastInitial = null;
-	    });
-	    delayedProcessing();
-	};
+	const addSection = () => {
+	      sectionSizes.value.push(0); // Add a new section
+	    };
+
+	    const removeSection = () => {
+	      if (sectionSizes.value.length > 1) {
+		sectionSizes.value.pop(); // Remove the last section
+	      }
+	    };
+
+	    const updateSectionsOnSliderChange = () => {
+	      const totalSize = sectionSizes.value.reduce((acc, size) => acc + size, 0);
+	      if (totalSize > students.value.length) {
+		sectionSizes.value[sectionSizes.value.length - 1] = students.value.length - totalSize + sectionSizes.value[sectionSizes.value.length - 1];
+	      }
+	      if (totalSize < students.value.length && sectionSizes.value[sectionSizes.value.length - 1] > 0) {
+		sectionSizes.value.push(0);
+	      }
+	      // Remove sections that are smaller than 1
+  	      sectionSizes.value = sectionSizes.value.filter(size => size >= 1);
+	    };
+
+	    watch(sectionSizes, () => {
+	      const totalSize = sectionSizes.value.reduce((acc, size) => acc + size, 0);
+	      if (totalSize !== students.value.length) {
+		// Handle mismatch
+	      }
+	    }, { deep: true });
         
         // Delayed processing to handle user input changes
         const delayedProcessing = () => {
@@ -659,15 +669,18 @@ createApp({
 	
         return {
             students,
-	    sliderSections,
+            sections,
+	    sectionSizes,
 	    config,
 	    handleFileUpload,
-	    initializeSliders,
-	    adjustSliderCount,
-	    updateSectionsOnSliderChange,
+	    initializeSections,
+	    addSection,
+	    removeSection,
+      	    updateSectionsOnSliderChange,
 	    loading,
 	    progress,
-	    immediateProcessing
+	    immediateProcessing,
+	    studentsInitialized
         };
     }
 }).mount('#app');
