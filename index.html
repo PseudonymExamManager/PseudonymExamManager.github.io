@@ -6,6 +6,27 @@
     <title>PseudonymExamManager</title>
     <link rel="manifest" href="/manifest.webmanifest">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+    .section {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .section-bar {
+      height: 20px;
+      background-color: #60a5fa; /* Light blue */
+      margin-right: 10px;
+    }
+    .warning .section-bar {
+      background-color: orange; /* Orange for mismatch */
+    }
+    .section-number {
+      margin-right: 10px;
+      font-weight: bold;
+      display: inline-block;
+      width: 30px;
+    }
+  </style>
     <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue3-slider/dist/vue3-slider.umd.min.js"></script>
 </head>
@@ -36,13 +57,18 @@
             </div>
             <div class="mb-4">
                 <label class="block mb-1">Sections:</label>
-                <div v-for="(sliderSection, index) in sliderSections" :key="index" class="mb-2">
-                    <vue3-slider v-model="sliderSection.size" @input="updateSectionsOnSliderChange"></vue3-slider>
-                    <p>Section {{ index + 1 }}: {{ sliderSection.size }} students</p>
-                    <p v-if="sliderSection.firstInitial && sliderSection.lastInitial">
-                        From {{ sliderSection.firstInitial }} to {{ sliderSection.lastInitial }}
-                    </p>
-                </div>
+                <div v-if="studentsInitialized">
+                  <div v-if="sectionSizes.reduce((acc, size) => acc + size, 0) !== students.length" class="bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-4 mt-4" role="alert">
+		    <p class="font-bold">Warning</p>
+		    <p>The number of students does not match the section settings. Please adjust the section sizes.</p></div>
+		  <div v-for="(size, index) in sectionSizes" :key="index" class="section" :class="{ warning: sectionSizes.reduce((acc, size) => acc + size, 0) !== students.length }">
+		    <div class="section-number">{{ index + 1 }}</div>
+		    <div :style="{ width: size + '%' }" class="section-bar"></div>
+		    <input type="number" v-model="sectionSizes[index]" @input="updateSectionsOnSliderChange" class="input input-bordered w-full" />
+		  </div>
+		  <button @click="addSection" class="btn btn-primary mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Add Section</button>
+		  <button @click="removeSection" class="btn btn-secondary mt-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Remove Section</button>
+		</div>
             </div>
         </div>
         <div class="right-panel flex-2 p-5 border-t md:border-t-0 md:border-l border-gray-300 w-full md:w-3/5 h-full relative">
