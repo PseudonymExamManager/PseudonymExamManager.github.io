@@ -33,8 +33,7 @@ createApp({
 	    reader.onload = async (e) => {
 		const csv = new TextDecoder('iso-8859-1').decode(e.target.result);
 		await parseCSV(csv);
-		//initializeSliders(); // Initialize sliders after parsing the CSV
-		await sortAndSectionStudents();
+		await processStudents();
 		generatePDF();
 		loading.value = false;
 	    };
@@ -482,84 +481,98 @@ createApp({
 	    });
 	};
 
-
-        // Sort students and divide them into sections
-        const sortAndSectionStudents = async () => {
-	    console.log("Sorting and sectioning students...");
-
-	    // Filter out students without Matrikelnummer
+	// Filter students without Matrikelnummer
+	const filterStudents = () => {
 	    students.value = students.value.filter(student => student.Matrikelnummer);
-
-	    // Sort students by Name, Vorname, and Mittelname
-	    students.value.sort((a, b) => {
+	};
+	
+	// Sort students by Name, Vorname, and Mittelname
+	    const sortStudents = () => {
+	      students.value.sort((a, b) => {
 		if (a.Name !== b.Name) return a.Name.localeCompare(b.Name);
 		if (a.Vorname !== b.Vorname) return a.Vorname.localeCompare(b.Vorname);
 		return a.Mittelname.localeCompare(b.Mittelname);
-	    });
+	      });
+	    };
 
-	    // Map to keep track of students with the same base name
-	    const nameMap = new Map();
+	// Group students by base name and full name
+	    const groupStudents = () => {
+	      const nameMap = new Map();
 
-	    // Populate the map with students grouped by their base name
-	    students.value.forEach(student => {
+	      // Populate the map with students grouped by their base name
+	      students.value.forEach(student => {
 		const baseName = student.Name;
 		if (!nameMap.has(baseName)) {
-		    nameMap.set(baseName, []);
+		  nameMap.set(baseName, []);
 		}
 		nameMap.get(baseName).push(student);
-	    });
+	      });
 
-	    // Iterate over each group of students with the same base name
-	    nameMap.forEach((studentsWithSameName, baseName) => {
+	      // Iterate over each group of students with the same base name
+	      nameMap.forEach((studentsWithSameName, baseName) => {
 		if (studentsWithSameName.length > 1) {
-		    // Map to keep track of students with the same full name (Name + Vorname)
-		    const firstNamesMap = new Map();
+		  const firstNamesMap = new Map();
 
-		    // Populate the map with students grouped by their full name
-		    studentsWithSameName.forEach(student => {
-		        const fullName = `${student.Name}, ${student.Vorname}`;
-		        if (!firstNamesMap.has(fullName)) {
-		            firstNamesMap.set(fullName, []);
-		        }
-		        firstNamesMap.get(fullName).push(student);
-		    });
+		  // Populate the map with students grouped by their full name
+		  studentsWithSameName.forEach(student => {
+		    const fullName = `${student.Name}, ${student.Vorname}`;
+		    if (!firstNamesMap.has(fullName)) {
+		      firstNamesMap.set(fullName, []);
+		    }
+		    firstNamesMap.get(fullName).push(student);
+		  });
 
-		    // Iterate over each group of students with the same full name
-		    firstNamesMap.forEach((studentsWithSameFirstName, fullName) => {
-		        if (studentsWithSameFirstName.length > 1) {
-		            // If there are multiple students with the same full name, add the Mittelname
-		            studentsWithSameFirstName.forEach(student => {
-		                if (!student.Name.includes(student.Vorname)) {
-		                    student.Name = `${student.Name}, ${student.Vorname}`;
-		                }
-		                if (!student.Name.includes(student.Mittelname)) {
-		                    student.Name = `${student.Name}, ${student.Mittelname}`;
-		                }
-		            });
-		        } else {
-		            // If the full name is unique, add only the Vorname if not already included
-		            studentsWithSameFirstName.forEach(student => {
-		                if (!student.Name.includes(student.Vorname)) {
-		                    student.Name = `${student.Name}, ${student.Vorname}`;
-		                }
-		            });
+		  // Iterate over each group of students with the same full name
+		  firstNamesMap.forEach((studentsWithSameFirstName, fullName) => {
+		    if (studentsWithSameFirstName.length > 1) {
+		      // If there are multiple students with the same full name, add the Mittelname
+		      studentsWithSameFirstName.forEach(student => {
+		        if (!student.Name.includes(student.Vorname)) {
+		          student.Name = `${student.Name}, ${student.Vorname}`;
 		        }
-		    });
+		        if (!student.Name.includes(student.Mittelname)) {
+		          student.Name = `${student.Name}, ${student.Mittelname}`;
+		        }
+		      });
+		    } else {
+		      // If the full name is unique, add only the Vorname if not already included
+		      studentsWithSameFirstName.forEach(student => {
+		        if (!student.Name.includes(student.Vorname)) {
+		          student.Name = `${student.Name}, ${student.Vorname}`;
+		        }
+		      });
+		    }
+		  });
 		}
-	    });
-	    
-	    
-	    initializeSections(); // Initialize sections after parsing the CSV
+	      });
+	    };
 
-	    // Divide students into sections based on the section size
-	    sections.value = [];
-	    for (let i = 0; i < students.value.length; i += config.value.sectionSize) {
-		sections.value.push(students.value.slice(i, i + config.value.sectionSize));
-		progress.value = Math.round(((i + config.value.sectionSize) / students.value.length) * 100);
-		await new Promise(resolve => setTimeout(resolve, 0));
-	    }
-	    console.log("Sections:", sections.value);
+	// Divide students into sections based on the section size
+	const divideStudentsIntoSections = () => {
+		  sections.value = [];
+		  let sectionIndex = 0;
+		  let studentIndex = 0;
+
+		  while (studentIndex < students.value.length) {
+		    const sectionSize = sectionSizes.value[sectionIndex] || config.value.sectionSize;
+		    sections.value.push(students.value.slice(studentIndex, studentIndex + sectionSize));
+		    studentIndex += sectionSize;
+		    sectionIndex++;
+		    progress.value = Math.min(100, Math.round((studentIndex / students.value.length) * 100));
+		  }
+
+		  console.log("Sections:", sections.value);
 	};
+
+	// Process students: filter, sort, and group
+	    const processStudents = async () => {
+	      console.log("Processing students...");
+	      filterStudents();
+	      sortStudents();
+	      groupStudents();
+	      initializeSections();
+	      divideStudentsIntoSections();
+	    };
 
 	// Function to initialize sections
 	const initializeSections = () => {
@@ -584,16 +597,26 @@ createApp({
 	    };
 
 	    const updateSectionsOnSliderChange = () => {
-	      const totalSize = sectionSizes.value.reduce((acc, size) => acc + size, 0);
-	      if (totalSize > students.value.length) {
-		sectionSizes.value[sectionSizes.value.length - 1] = students.value.length - totalSize + sectionSizes.value[sectionSizes.value.length - 1];
-	      }
-	      if (totalSize < students.value.length && sectionSizes.value[sectionSizes.value.length - 1] > 0) {
-		sectionSizes.value.push(0);
-	      }
-	      // Remove sections that are smaller than 1
-  	      sectionSizes.value = sectionSizes.value.filter(size => size >= 1);
-	    };
+		  let totalSize = sectionSizes.value.reduce((acc, size) => acc + size, 0);
+		  
+		  if (totalSize > students.value.length) {
+		    sectionSizes.value[sectionSizes.value.length - 1] = students.value.length - totalSize + sectionSizes.value[sectionSizes.value.length - 1];
+		  }
+		  
+		  if (totalSize < students.value.length && sectionSizes.value[sectionSizes.value.length - 1] > 0) {
+		    sectionSizes.value.push(0);
+		  }
+		  
+		  // Remove sections that are smaller than 1
+		  sectionSizes.value = sectionSizes.value.filter(size => size >= 1);
+		  
+		  // Recalculate totalSize after adjustments
+		  totalSize = sectionSizes.value.reduce((acc, size) => acc + size, 0);
+		  
+		  if (totalSize === students.value.length) {
+		    delayedProcessing();
+		  }
+		};
 
 	    watch(sectionSizes, () => {
 	      const totalSize = sectionSizes.value.reduce((acc, size) => acc + size, 0);
@@ -615,7 +638,7 @@ createApp({
             typingTimer = setTimeout(async () => {
                 loading.value = true;
                 progress.value = 0;
-                await sortAndSectionStudents();
+                await divideStudentsIntoSections();
                 generatePDF();
                 loading.value = false;
             }, 3000);
@@ -626,7 +649,7 @@ createApp({
             clearTimeout(typingTimer);
             loading.value = true;
             progress.value = 0;
-            await sortAndSectionStudents();
+            await divideStudentsIntoSections();
             generatePDF();
             loading.value = false;
         };
